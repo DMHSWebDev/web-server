@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View the Guestbook</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/projects">Projects</a>
+        <a href="/guestbook">Guestbook</a>
+        <a href="/dashboard">Dashboard</a>
+    </nav>
+
+    <h1>Guestbook Entries</h1>
+    <ul id="guestbook-entries" class="guestbook-entries"></ul>
+
+    <script>
+        async function fetchGuestbookEntries() {
+            const response = await fetch('/api/viewguestbook');
+            const entries = await response.json();
+            const entriesList = document.getElementById('guestbook-entries');
+            entriesList.innerText = '';
+            entries.forEach(entry => {
+                const li = document.createElement('li');
+                // li.textContent = entry;
+                li.innerHTML = entry; // Use innerHTML to render HTML content
+                entriesList.appendChild(li);
+            });
+        }
+
+        // Fetch and display guestbook entries on page load
+        fetchGuestbookEntries();
+    </script>
+
+</body>
+
+</html>

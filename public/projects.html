@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/projects">Projects</a>
+        <a href="/guestbook">Guestbook</a>
+        <a href="/dashboard">Dashboard</a>
+    </nav>
+    <main class="projects-page">
+        <h1>My Projects</h1>
+        <p class="projects-intro">A collection of frontend work and server extensions.</p>
+
+        <section class="project-category" id="frontend-projects" aria-labelledby="frontend-heading">
+            <h2 id="frontend-heading">Frontend</h2>
+            <section class="project-group" id="landing-page-examples" aria-labelledby="landing-examples-heading">
+                <h3 id="landing-examples-heading">Landing Page Examples</h3>
+                <div class="project-placeholder">
+                    <p>Landing page examples will appear here.</p>
+                </div>
+            </section>
+        </section>
+
+        <section class="project-category" id="server-extensions" aria-labelledby="server-extensions-heading">
+            <h2 id="server-extensions-heading">Server Extensions</h2>
+            <div class="server-extension-groups">
+                <section class="server-extension-group" aria-labelledby="auth-extensions-heading">
+                    <h3 id="auth-extensions-heading">Authentication and Access</h3>
+                    <ul class="server-extension-list">
+                        <li>Password-based login checked against a server-side environment variable</li>
+                        <li>Session-based authentication with optional seven-day "Remember me"</li>
+                        <li>Logout destroys the active session</li>
+                        <li>Dashboard, guestbook page, and guestbook API require login</li>
+                        <li>Login status endpoint for the frontend</li>
+                    </ul>
+                </section>
+
+                <section class="server-extension-group" aria-labelledby="guestbook-extensions-heading">
+                    <h3 id="guestbook-extensions-heading">Guestbook API</h3>
+                    <ul class="server-extension-list">
+                        <li>Guestbook entries persist in a JSON data file</li>
+                        <li>Authenticated endpoints list, add, and clear entries</li>
+                        <li>Validates names and messages, normalizes whitespace, and filters profanity</li>
+                        <li>Each entry receives a unique ID and timestamp; storage keeps the latest 50</li>
+                    </ul>
+                </section>
+
+                <section class="server-extension-group" aria-labelledby="operations-extensions-heading">
+                    <h3 id="operations-extensions-heading">Monitoring and Request Controls</h3>
+                    <ul class="server-extension-list">
+                        <li>Rate limit of 100 requests per IP every 10 seconds</li>
+                        <li>Request method and path logged to the console and a server log file</li>
+                        <li>Visitor count for the home and projects pages, exposed through a stats endpoint</li>
+                        <li>Static pages served with extensionless HTML URLs</li>
+                    </ul>
+                </section>
+            </div>
+        </section>
+    </main>
+</body>
+
+</html>
