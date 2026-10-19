@@ -1,7 +1,6 @@
 const loginForm = document.querySelector('#login-form');
 const loginMessage = document.querySelector('#login-message');
 
-
 const status = document.querySelector('#status');
 const loginSection = document.querySelector('#login-section');
 // const logoutButton = document.querySelector('#logout-button');
@@ -12,7 +11,10 @@ async function checkAuthState() {
         const data = await response.json();
 
         if (data.loggedIn) {
-            status.innerHTML = '<h1>Welcome back!</h1><a href="/dashboard">Dashboard</a>';
+            status.textContent = '';
+            const heading = document.createElement('h1');
+            heading.textContent = `Welcome back, ${data.username}!`;
+            status.append(heading);
             loginSection.hidden = true;
             logoutButton.hidden = false;
         } else {
@@ -31,12 +33,13 @@ loginForm.addEventListener('submit', async (event) => {
     event.preventDefault();
 
     const password = document.querySelector('#password').value;
+    const username = document.querySelector('#username').value;
     const rememberMe = event.target.rememberMe.checked;
 
     const response = await fetch(loginForm.action, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password, rememberMe })
+        body: JSON.stringify({ username, password, rememberMe })
     });
 
     const data = await response.json().catch(() => ({ success: false }));

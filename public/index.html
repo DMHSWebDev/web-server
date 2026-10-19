@@ -23,11 +23,14 @@
     <div id="login-section" hidden>
         <h2>Login</h2>
         <form id="login-form" action="/login" method="post">
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text" autocomplete="username" required>
             <label for="password">Password</label>
             <input id="password" name="password" type="password" required>
             <label><input type="checkbox" name="rememberMe" /> Remember me</label>
             <button type="submit">Log in</button>
         </form>
+        <p>New here? <a href="/register">Create an account</a></p>
         <p id="login-message" role="status"></p>
     </div>
 

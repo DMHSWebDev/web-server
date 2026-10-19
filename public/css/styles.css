@@ -195,6 +195,7 @@ button {
     font: inherit;
     font-weight: 700;
     transition: transform 150ms ease, background-color 150ms ease;
+    margin: 5px;
 }
 
 button:hover {

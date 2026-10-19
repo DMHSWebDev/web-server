@@ -1,20 +1,9 @@
 [
   {
-    "id": "4cc9ea81-66ef-4e0c-b929-e22a16d169e4",
-    "name": "Kevin",
-    "msg": "Hello",
-    "createdAt": "2026-10-05T13:24:56.008Z"
-  },
-  {
-    "id": "2f7f4349-7ff3-43f7-b1e1-08b6a9d59bcc",
-    "name": "Kevin",
-    "msg": "Hello again!",
-    "createdAt": "2026-10-06T13:21:27.938Z"
-  },
-  {
-    "id": "b1b1e1b2-84ba-48d5-81cd-2935b34f5c25",
-    "name": "Donohue",
-    "msg": "Heyyoooo",
-    "createdAt": "2026-10-06T13:21:58.050Z"
+    "id": "fdbf184a-6315-4f80-846b-3a2f4cdccb1f",
+    "name": "Mr. D",
+    "msg": "Another message!! Edit the message",
+    "createdAt": "2026-10-19T11:21:34.863Z",
+    "updatedAt": "2026-10-19T12:21:08.841Z"
   }
 ]

@@ -1,5 +1,16 @@
 require('dotenv').config();
 
+const REQUIRED_ENV = ['SESSION_SECRET', 'NASA_API_KEY', 'ADMIN_USERNAME', 'ADMIN_PASSWORD'];
+for (const name of REQUIRED_ENV) {
+    if (!process.env[name]) {
+        console.error(`Missing ${name} in .env (or in Render's Environment settings)`);
+        process.exit(1);
+    }
+}
+
+const db = require('./db');
+const bcrypt = require('bcryptjs');
+
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
@@ -7,7 +18,8 @@ const session = require('express-session');
 const rateLimit = require('express-rate-limit');
 const { Filter } = require('bad-words');
 
-const crypto = require('crypto');
+const isProduction = process.env.NODE_ENV === 'production';
+
 const helmet = require('helmet');
 
 const filter = new Filter();
@@ -41,11 +53,32 @@ if (fs.existsSync(LOG_FILE) && fs.statSync(LOG_FILE).size > 128 * 128) {
     fs.writeFileSync(LOG_FILE, recentLines.join('\n'));
 }
 
-const GUESTBOOK_FILE = path.join(__dirname, 'guestbook.json');
+function validateCredentials(username, password) {
+    if (typeof username !== 'string' || typeof password !== 'string') {
+        return 'Username and password must be text.';
+    }
+    if (!/^[a-z0-9_]{3,20}$/.test(username.trim().toLowerCase())) {
+        return 'Username must be 3 to 20 letters, numbers or underscores.';
+    }
+    if (password.length < 8 || password.length > 72) {
+        return 'Password must be 8 to 72 characters.';
+    }
+    return null;
+}
 
-function getGuestbookMessages() {
-    if (!fs.existsSync(GUESTBOOK_FILE)) return [];
-    return JSON.parse(fs.readFileSync(GUESTBOOK_FILE, 'utf8'));
+function startSession(req, user, rememberMe) {
+    return new Promise((resolve, reject) => {
+        req.session.regenerate((err) => {
+            if (err) return reject(err);
+            req.session.userId = user.id;
+            req.session.username = user.username;
+            req.session.role = user.role;
+            if (rememberMe) {
+                req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
+            }
+            resolve();
+        });
+    });
 }
 
 function validateApodDate(date) {
@@ -102,6 +135,18 @@ app.use((req, res, next) => {
     next();
 });
 
+const spaceLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    limit: 10,           // 10 lookups per minute, per visitor
+    message: { error: 'Too many space lookups. Please wait a minute.' }
+});
+
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 10,
+    message: { error: 'Too many login attempts. Please wait 15 minutes and try again.' }
+});
+
 // Rate limiter - blocks an IP with a 429 response if it sends too many
 // requests within the time window
 const limiter = rateLimit({
@@ -111,21 +156,38 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// Tracks logged-in users via a signed cookie - the browser sends it back
-// automatically, no frontend code needed. Requires SESSION_SECRET in .env.
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'fallback_secret',
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 15 * 60 * 1000 } // session expires after 15 minutes
+    cookie: {
+        maxAge: 15 * 60 * 1000,   // 15 minutes
+        httpOnly: true,           // page JavaScript cannot read it
+        sameSite: 'lax',          // other sites cannot send it with their forms
+        secure: isProduction      // only sent over HTTPS on the live site
+    }
 }));
 
-// Route guard - use this on any route that should require login.
-// Example: app.get('/dashboard', requireAuth, (req, res) => { ... });
+// For API routes: JavaScript gets a clear JSON error
 function requireAuth(req, res, next) {
-    if (!req.session.isAuthenticated) {
+    if (!req.session.userId) {
+        return res.status(401).json({ error: 'Please log in first.' });
+    }
+    next();
+}
+
+// For pages: people get sent to the login page
+function requireLoginPage(req, res, next) {
+    if (!req.session.userId) {
         return res.redirect('/');
-        // return res.status(401).json({ error: 'Please log in first.' });
+    }
+    next();
+}
+
+// For admin-only pages: everyone else goes back to the home page
+function requireAdminPage(req, res, next) {
+    if (req.session.role !== 'admin') {
+        return res.redirect('/');
     }
     next();
 }
@@ -136,16 +198,22 @@ function requireAuth(req, res, next) {
 // ==========================================
 
 // Checks the password against .env; marks the session authenticated if correct
-app.post('/login', (req, res) => {
-    const { password, rememberMe } = req.body;
-    if (password === process.env.APP_PASSWORD) {
-        req.session.isAuthenticated = true;
-        if (rememberMe) {
-            req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
-        }
-        return res.status(200).json({ success: true });
+app.post('/login', authLimiter, async (req, res) => {
+    const { username, password, rememberMe } = req.body;
+    if (typeof username !== 'string' || typeof password !== 'string') {
+        return res.status(400).json({ error: 'Username and password are required.' });
     }
-    return res.status(401).json({ success: false, error: 'Incorrect password' });
+
+    const user = await db.getUserByUsername(username.trim());
+    const passwordOk = user && await bcrypt.compare(password, user.passwordHash);
+
+    if (!passwordOk) {
+        // Same message whether the username or the password was wrong
+        return res.status(401).json({ error: 'Incorrect username or password.' });
+    }
+
+    await startSession(req, user, rememberMe);
+    res.json({ success: true, username: user.username });
 });
 
 // Logout - destroys the session so req.session.isAuthenticated is gone
@@ -155,18 +223,9 @@ app.post('/logout', (req, res) => {
     });
 });
 
-app.get('/api/hello', (req, res) => {
-    res.json({ message: 'Hello, world!' });
-});
-
-// Exposes the visitor count as JSON, e.g. for a frontend script to display
-app.get('/api/stats', (req, res) => {
-    res.set('Cache-Control', 'no-store');
-    res.json({ visitorCount });
-});
 
 // Example protected route - try fetching this without logging in first
-app.get('/dashboard', requireAuth, (req, res) => {
+app.get('/dashboard', requireAdminPage, (req, res) => {
     // res.json({ message: 'You are logged in!' });
     res.sendFile(path.join(PUBLIC_DIR, 'dashboard.html'));
 });
@@ -185,62 +244,85 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/whoami', (req, res) => {
-    res.json({ loggedIn: !!req.session.isAuthenticated });
-});
-
-app.get('/guestbook', requireAuth, (req, res) => {
-    res.sendFile(path.join(PUBLIC_DIR, 'guestbook.html'));
+    if (!req.session.userId) {
+        return res.json({ loggedIn: false });
+    }
+    res.json({
+        loggedIn: true,
+        userId: req.session.userId,
+        username: req.session.username,
+        role: req.session.role
+    });
 });
 
 app.get('/space', (req, res) => {
     res.sendFile(path.join(PUBLIC_DIR, 'space.html'));
 });
 
-app.get('/api/guestbook', requireAuth, (req, res) => {
-    res.json(getGuestbookMessages());
+app.get('/guestbook', requireLoginPage, (req, res) => {
+    res.sendFile(path.join(PUBLIC_DIR, 'guestbook.html'));
 });
 
-app.get('/api/clear-guestbook', requireAuth, (req, res) => {
-    fs.writeFileSync(GUESTBOOK_FILE, JSON.stringify([]));// Clear the guestbook file with []
-    res.json({ success: true });
+// READ ALL
+app.get('/api/guestbook', requireAuth, async (req, res) => {
+    const entries = await db.getAllEntries();
+    res.json(entries);
 });
 
-app.post('/api/guestbook', requireAuth, (req, res) => {
+// CREATE
+app.post('/api/guestbook', requireAuth, async (req, res) => {
     const { name, msg } = req.body;
+    const error = validateEntry(name, msg);
 
+    if (error) {
+        return res.status(400).json({ error });
+    }
+
+    if (filter.isProfane(msg)) {
+        return res.status(400).json({ error: 'Please keep your message friendly.' });
+    }
+
+    const entry = await db.addEntry({ name: name.trim(), msg: msg.trim() });
+    res.status(201).json(entry);
+});
+
+// READ ONE
+app.get('/api/guestbook/:id', requireAuth, async (req, res) => {
+    const entry = await db.getEntryById(req.params.id);
+    if (!entry) {
+        return res.status(404).json({ error: 'Entry not found.' });
+    }
+    res.json(entry);
+});
+
+// DELETE
+app.delete('/api/guestbook/:id', requireAuth, async (req, res) => {
+    const deleted = await db.deleteEntry(req.params.id);
+    if (!deleted) {
+        return res.status(404).json({ error: 'Entry not found.' });
+    }
+    res.status(204).end();
+});
+
+// UPDATE
+app.put('/api/guestbook/:id', requireAuth, async (req, res) => {
+    const { name, msg } = req.body;
     const error = validateEntry(name, msg);
     if (error) {
-        return res.status(400).json({ error: error });
+        return res.status(400).json({ error });
     }
 
-    const messages = getGuestbookMessages();
-    const cleanedInput = msg.replace(/\s+/g, ' ').trim();
-    const compactInput = cleanedInput.replace(/\s/g, '');
-    if (filter.isProfane(compactInput)) {
-        return res.status(400).json({ error: 'Message contains profanity' });
-    }
-
-    const entry = {
-        id: crypto.randomUUID(),
+    const updated = await db.updateEntry(req.params.id, {
         name: name.trim(),
-        msg: cleanedInput,
-        createdAt: new Date().toISOString()
-    };
-    messages.push(entry);
-    fs.writeFileSync(GUESTBOOK_FILE, JSON.stringify(messages.slice(-50), null, 2));
-    res.json({ success: true });
-});
-
-app.get('/api/headers-demo', (req, res) => {
-    res.set('X-Student-Name', 'Kevin Donohue');
-    res.json({
-        browser: req.get('User-Agent'),
-        languages: req.get('Accept-Language'),
-        allRequestHeaders: req.headers
+        msg: msg.trim()
     });
+    if (!updated) {
+        return res.status(404).json({ error: 'Entry not found.' });
+    }
+    res.json(updated);
 });
 
-app.get('/api/space', async (req, res) => {
+app.get('/api/space', spaceLimiter, async (req, res) => {
     const { date } = req.query;
 
     const dateError = validateApodDate(date);
@@ -314,13 +396,24 @@ app.get('/api/space', async (req, res) => {
     res.json(result);
 });
 
-// app.get('/your-route-here', (req, res) => {
-//
-// });
+app.post('/register', authLimiter, async (req, res) => {
+    const { username, password } = req.body;
+    const error = validateCredentials(username, password);
+    if (error) {
+        return res.status(400).json({ error });
+    }
 
-// app.post('/your-route-here', (req, res) => {
-//
-// });
+    const cleanName = username.trim().toLowerCase();
+    if (await db.getUserByUsername(cleanName)) {
+        return res.status(409).json({ error: 'That username is already taken.' });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
+    const user = await db.addUser({ username: cleanName, passwordHash });
+
+    await startSession(req, user); // new users are logged in right away
+    res.status(201).json({ username: user.username });
+});
 
 // ==========================================
 // STATIC FILES
@@ -356,4 +449,16 @@ app.use((err, req, res, next) => {
     res.status(status).send('<h1>Something went wrong</h1><p>Please try again later.</p><a href="/">Back to home</a>');
 });
 
-app.listen(PORT, () => console.log(`Server live on http://localhost:${PORT}`));
+// Creates the admin account from .env if it doesn't exist yet
+async function ensureAdmin() {
+    const existing = await db.getUserByUsername(process.env.ADMIN_USERNAME);
+    if (existing) return;
+
+    const passwordHash = await bcrypt.hash(process.env.ADMIN_PASSWORD, 12);
+    await db.addUser({ username: process.env.ADMIN_USERNAME, passwordHash, role: 'admin' });
+    console.log('Created admin account');
+}
+
+ensureAdmin().then(() => {
+    app.listen(PORT, () => console.log(`Server live on http://localhost:${PORT}`));
+});

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domain 1A — Operators</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/review.css">
+</head>
+
+<body class="review">
+    <nav>
+        <a href="/">Home</a>
+        <a href="/projects">Projects</a>
+        <a href="/guestbook">Guestbook</a>
+        <a href="/review">JavaScript Review</a>
+    </nav>
+
+    <div class="review-wrap">
+
+        <header class="review-header">
+            <p class="eyebrow">Domain 1, Part A</p>
+            <h1>Operators &amp; Best Practices</h1>
+            <p>Objectives 1.1 and 1.2 &mdash; assignment and arithmetic operators,
+               and the habits that keep code readable. Built by [YOUR NAME].</p>
+        </header>
+
+        <!-- ============ CARD 1 ============ -->
+        <section class="card">
+            <h2>1. The five arithmetic operators</h2>
+            <p class="explain">
+                Division always produces a decimal when numbers do not divide evenly.
+                Modulus (<code>%</code>) gives the <strong>remainder</strong>, not the quotient.
+            </p>
+
+<pre class="code">let a = 23;
+let b = 5;
+
+a + b   // 28
+a - b   // 18
+a * b   // 115
+a / b   // 4.6
+a % b   // 3   &lt;-- remainder</pre>
+
+            <button class="run" id="btn-arith">Run it</button>
+            <pre class="output" id="out-arith"></pre>
+
+            <p class="takeaway">
+                <strong>Remember:</strong> 23 / 5 is 4.6, but 23 % 5 is 3.
+                The quotient is 4 and the remainder is 3 &mdash; modulus returns the remainder.
+            </p>
+        </section>
+
+        <!-- ============ CARD 2 ============ -->
+        <section class="card">
+            <h2>2. Modulus finds even and odd</h2>
+            <p class="explain">
+                Any number <code>% 2</code> can only be 0 or 1. That makes it the standard
+                even/odd test. Type a number and watch it work.
+            </p>
+
+<pre class="code">if (num % 2 === 0) {
+    // even
+} else {
+    // odd
+}</pre>
+
+            <div class="try-it">
+                <label for="num-input">Number:</label>
+                <input type="number" id="num-input" value="17">
+                <button class="run" id="btn-even">Check it</button>
+            </div>
+            <pre class="output" id="out-even"></pre>
+
+            <p class="takeaway">
+                <strong>Remember:</strong> the remainder is always smaller than the divisor.
+                Anything <code>% 5</code> can only be 0, 1, 2, 3, or 4.
+            </p>
+        </section>
+
+        <!-- ============ CARD 3 ============ -->
+        <section class="card">
+            <h2>3. The <code>+</code> problem</h2>
+            <p class="explain">
+                <code>+</code> does two jobs: it adds numbers, but it <strong>joins</strong>
+                if either side is text. Every other arithmetic operator forces numbers.
+                This matters because form input is <em>always</em> a string.
+            </p>
+
+<pre class="code">'8' + 2    // '82'   joined, not added
+'8' - 2    // 6      '-' has no text meaning
+'8' * 2    // 16
+Number('8') + 2   // 10   the fix</pre>
+
+            <div class="try-it">
+                <label for="val-1">First:</label>
+                <input type="text" id="val-1" value="8">
+                <label for="val-2">Second:</label>
+                <input type="text" id="val-2" value="2">
+                <button class="run" id="btn-plus">Compare</button>
+            </div>
+            <pre class="output" id="out-plus"></pre>
+
+            <p class="takeaway">
+                <strong>Remember:</strong> <code>.value</code> from an input is a string.
+                Wrap it in <code>Number()</code> or <code>parseInt()</code> before doing math.
+            </p>
+        </section>
+
+        <!-- ============ CARD 4 ============ -->
+        <section class="card">
+            <h2>4. Prefix vs. postfix increment</h2>
+            <p class="explain">
+                Both <code>x++</code> and <code>++x</code> raise the variable by one.
+                The difference is <strong>what the expression hands back</strong>.
+            </p>
+
+<pre class="code">let x = 5;
+let a = x++;   // a is 5, x is 6   (hand back, then add)
+
+let y = 5;
+let b = ++y;   // b is 6, y is 6   (add, then hand back)</pre>
+
+            <button class="run" id="btn-inc">Run it</button>
+            <pre class="output" id="out-inc"></pre>
+
+            <p class="takeaway">
+                <strong>Remember:</strong> the <code>++</code> goes first, it happens first.
+                On a line by itself the two forms are identical.
+            </p>
+        </section>
+
+        <!-- ============ CARD 5 ============ -->
+        <section class="card">
+            <h2>5. Compound assignment</h2>
+            <p class="explain">
+                A shortcut for doing math on a variable and storing the result back in it.
+                <code>x += 5</code> is the same as <code>x = x + 5</code>.
+            </p>
+
+            <table class="ref">
+                <tr><th>Shortcut</th><th>Longhand</th></tr>
+                <tr><td><code>x += 5</code></td><td><code>x = x + 5</code></td></tr>
+                <tr><td><code>x -= 5</code></td><td><code>x = x - 5</code></td></tr>
+                <tr><td><code>x *= 5</code></td><td><code>x = x * 5</code></td></tr>
+                <tr><td><code>x /= 5</code></td><td><code>x = x / 5</code></td></tr>
+                <tr><td><code>x %= 5</code></td><td><code>x = x % 5</code></td></tr>
+            </table>
+
+            <button class="run" id="btn-compound">Run it</button>
+            <pre class="output" id="out-compound"></pre>
+
+            <p class="takeaway">
+                <strong>Remember:</strong> <code>x++</code> and <code>x += 1</code> do the same thing.
+            </p>
+        </section>
+
+        <!-- ============ CARD 6 ============ -->
+        <section class="card">
+            <h2>6. <code>=</code> vs <code>==</code> vs <code>===</code></h2>
+            <p class="explain">
+                One equals sign <strong>assigns</strong>. Two or three <strong>compare</strong>.
+                A single <code>=</code> inside an <code>if</code> is a classic bug: it stores a
+                value and then treats that value as the condition.
+            </p>
+
+<pre class="code">let level = 2;
+
+level = 5      // assigns 5 — the condition is "truthy", always runs
+level == '5'   // true  — compares value only, converts the type first
+level === '5'  // false — compares value AND type
+level === 5    // true</pre>
+
+            <button class="run" id="btn-equals">Run it</button>
+            <pre class="output" id="out-equals"></pre>
+
+            <p class="takeaway">
+                <strong>Remember:</strong> use <code>===</code> for comparisons. It checks the
+                type too, which catches the string-vs-number mistakes from Card 3.
+            </p>
+        </section>
+
+        <!-- ============ CARD 7 ============ -->
+        <section class="card">
+            <h2>7. Naming and best practices (1.2)</h2>
+            <p class="explain">
+                Names must start with a letter, <code>_</code>, or <code>$</code> &mdash; never a digit.
+                No spaces or hyphens, and no reserved keywords. Variables use camelCase;
+                constants use UPPER_SNAKE.
+            </p>
+
+            <table class="ref">
+                <tr><th>Name</th><th>Legal?</th><th>Why</th></tr>
+                <tr><td><code>totalPoints</code></td><td>Yes</td><td>camelCase, starts with a letter</td></tr>
+                <tr><td><code>MAX_USERS</code></td><td>Yes</td><td>constant convention</td></tr>
+                <tr><td><code>_count</code></td><td>Yes</td><td>underscore is allowed</td></tr>
+                <tr><td><code>2ndPlace</code></td><td>No</td><td>starts with a digit</td></tr>
+                <tr><td><code>user-name</code></td><td>No</td><td>hyphen is the minus operator</td></tr>
+                <tr><td><code>return</code></td><td>No</td><td>reserved keyword</td></tr>
+            </table>
+
+<pre class="code">// A single-line comment explains WHY, not what
+
+/* A block comment
+   spans multiple lines */
+
+const MAX_TRIES = 3;    // never reassigned  -> const
+let attempts = 0;       // changes as we go  -> let
+
+console.log('attempts:', attempts);   // label your output
+debugger;                             // pauses when DevTools is open</pre>
+
+            <button class="run" id="btn-names">Run it</button>
+            <pre class="output" id="out-names"></pre>
+
+            <p class="takeaway">
+                <strong>Remember:</strong> ask "does this ever get reassigned?"
+                No means <code>const</code>. Yes means <code>let</code>. Never <code>var</code>.
+            </p>
+        </section>
+
+    </div>
+
+    <!-- ==========================================================
+         EXTERNAL SCRIPTS ONLY — no inline JavaScript on this server.
+         Order matters: review.js defines show(), so it loads first.
+         ========================================================== -->
+    <script src="/js/review.js"></script>
+    <script src="/js/review-d1a.js"></script>
+</body>
+
+</html>
