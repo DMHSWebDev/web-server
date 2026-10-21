@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/design.css">
+    <!-- Lets design.js write `import ... from 'three'`. server.js allows
+         this inline script by its hash, so you can edit it freely. -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "/vendor/three/build/three.module.js",
+                "three/addons/": "/vendor/three/examples/jsm/",
+                "three-mesh-bvh": "/vendor/three-mesh-bvh/build/index.module.js",
+                "three-bvh-csg": "/vendor/three-bvh-csg/build/index.module.js"
+            }
+        }
+    </script>
+</head>
+
+<body class="design-page">
+    <nav>
+        <a href="/">Home</a>
+        <a href="/guestbook">Guestbook</a>
+        <a href="/space">Space</a>
+        <a href="/design">Design</a>
+        <a href="/dashboard">Dashboard</a>
+    </nav>
+
+    <div class="designer">
+        <aside class="toolbar" aria-label="Shapes and tools">
+            <h2>Shapes</h2>
+            <div class="button-grid">
+                <button type="button" data-add="box">Box</button>
+                <button type="button" data-add="cylinder">Cylinder</button>
+                <button type="button" data-add="sphere">Sphere</button>
+                <button type="button" data-add="cone">Cone</button>
+                <button type="button" data-add="torus">Ring</button>
+                <button type="button" data-add="text">Text</button>
+            </div>
+
+            <h2>Tools</h2>
+            <div class="button-grid">
+                <button type="button" data-mode="translate" class="active">Move</button>
+                <button type="button" data-mode="rotate">Rotate</button>
+                <button type="button" data-mode="scale">Stretch</button>
+                <button type="button" id="drop-button">Drop to floor</button>
+                <button type="button" id="duplicate-button">Duplicate</button>
+                <button type="button" id="delete-button">Delete</button>
+                <button type="button" id="group-button" title="Shift-click to pick several shapes, then group">Group</button>
+                <button type="button" id="undo-button">Undo</button>
+            </div>
+
+            <h2>Finish</h2>
+            <div class="button-grid">
+                <button type="button" id="download-button">Download STL</button>
+                <button type="button" id="submit-open-button" class="primary">Send to print</button>
+                <button type="button" id="clear-button">Start over</button>
+            </div>
+        </aside>
+
+        <div class="viewport" id="viewport">
+            <p class="hint">Drag to look around · Click a shape to pick it · Shift-click to pick several</p>
+        </div>
+
+        <aside class="properties" aria-label="Selected shape">
+            <h2>Selected</h2>
+            <p id="no-selection">Nothing selected. Add a shape or click one.</p>
+            <form id="props-form" hidden>
+                <fieldset>
+                    <legend>Size (mm)</legend>
+                    <label>Width <input type="number" id="size-x" min="0.5" step="0.5"></label>
+                    <label>Depth <input type="number" id="size-y" min="0.5" step="0.5"></label>
+                    <label>Height <input type="number" id="size-z" min="0.5" step="0.5"></label>
+                </fieldset>
+                <label id="text-label" hidden>Text <input type="text" id="text-input" maxlength="30"></label>
+                <label>Color <input type="color" id="color-input"></label>
+                <label class="checkbox"><input type="checkbox" id="hole-input"> Hole (cuts into shapes when grouped)</label>
+            </form>
+            <p id="selection-count" hidden></p>
+            <p id="design-status" role="status"></p>
+        </aside>
+    </div>
+
+    <dialog id="submit-dialog">
+        <form id="submit-form" method="dialog">
+            <h2>Send your design</h2>
+            <p>I'll get a copy of your model so I can print it.</p>
+            <label for="submit-name">Your name</label>
+            <input id="submit-name" maxlength="40" required>
+            <label for="submit-contact">How to reach you (optional)</label>
+            <input id="submit-contact" maxlength="100">
+            <label for="submit-note">Notes, like color or size (optional)</label>
+            <textarea id="submit-note" maxlength="500" rows="3"></textarea>
+            <p id="submit-message" role="alert"></p>
+            <div class="dialog-buttons">
+                <button type="button" id="submit-cancel">Cancel</button>
+                <button type="submit" class="primary">Send</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script type="module" src="/js/design.js"></script>
+</body>
+
+</html>

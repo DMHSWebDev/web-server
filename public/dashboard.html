@@ -5,47 +5,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
-    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/styles.css">
 </head>
 
 <body>
     <nav>
         <a href="/">Home</a>
-        <a href="/projects">Projects</a>
         <a href="/guestbook">Guestbook</a>
-        <a href="/dashboard">Dashboard</a>
         <a href="/space">Space</a>
+        <a href="/design">Design</a>
+        <a href="/dashboard">Dashboard</a>
     </nav>
+
     <h1>Dashboard</h1>
+    <p>Visitors so far: <span id="visitor-count">...</span></p>
 
-    <p>Welcome to your dashboard!</p>
+    <h2>Designs to print</h2>
+    <ul id="design-list"></ul>
 
-    <button id="delete-button" type="button">Delete All Messages</button>
     <button id="logout-button" type="button">Log out</button>
 
-    <script>
-        const logoutButton = document.querySelector('#logout-button');
-        const deleteButton = document.querySelector('#delete-button');
-
-        logoutButton.addEventListener('click', async () => {
-            const response = await fetch('/logout', {
-                method: 'POST'
-            });
-            const data = await response.json().catch(() => ({ success: false }));
-            if (data.success) {
-                window.location.href = '/';
-            }
-        });
-        deleteButton.addEventListener('click', async () => {
-            const response = await fetch('/api/clear-guestbook', {
-                method: 'GET'
-            });
-            const data = await response.json().catch(() => ({ success: false }));
-            if (data.success) {
-                alert('All messages have been deleted.');
-            }
-        });
-    </script>
+    <script src="/js/dashboard.js"></script>
 </body>
 
 </html>

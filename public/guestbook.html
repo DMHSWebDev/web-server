@@ -4,38 +4,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="/css/styles.css">
+    <title>Guestbook</title>
+    <link rel="stylesheet" href="/styles.css">
 </head>
 
 <body>
     <nav>
         <a href="/">Home</a>
-        <a href="/projects">Projects</a>
         <a href="/guestbook">Guestbook</a>
+        <a href="/space">Space</a>
+        <a href="/design">Design</a>
         <a href="/dashboard">Dashboard</a>
     </nav>
-    <h1>Guestbook</h1>
-    <p id="list-error" role="alert"></p>
-    <p id="form-error" role="alert"></p>
 
-    <button id="logout-button" type="button">Log out</button>
-    <ul id="guestbook-list" class="guestbook-list"></ul>
+    <h1>Guestbook</h1>
+
     <form id="guestbook-form">
         <label for="name">Name</label>
-        <input id="name" type="text" name="name" autocomplete="off" placeholder="Your name" maxlength="40" required />
+        <input id="name" type="text" name="name" maxlength="40" required />
 
         <label for="msg">Message</label>
-        <textarea id="msg" name="msg" maxlength="280" autocomplete="off" placeholder="Leave a message" required></textarea>
-
+        <textarea id="msg" name="msg" maxlength="280" required></textarea>
 
         <button type="submit">Post</button>
     </form>
+    <p id="form-error" role="alert"></p>
 
-
+    <p id="list-error" role="alert"></p>
+    <ul id="guestbook-list"></ul>
 
     <script src="/js/guestbook.js"></script>
-    <script src="/js/logout.js"></script>
 </body>
 
 </html>
